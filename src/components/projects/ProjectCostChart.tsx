@@ -45,7 +45,6 @@ export function ProjectCostChart({ data }: ProjectCostChartProps) {
       colorMap.set(item.name, item.fill);
     }
   });
-  const COLORS = Array.from(colorMap.values());
   const totalValue = chartData.reduce((sum, item) => sum + item.value, 0);
 
   // Custom tooltip for better readability

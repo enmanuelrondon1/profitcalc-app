@@ -61,7 +61,6 @@ export function ProjectProfitCalculator({
     initialState
   );
   const formRef = useRef<HTMLFormElement>(null);
-  const [inputMode, setInputMode] = useState<"total" | "unit">("total");
 
   // Cálculos
   const qty = quantity || 1;

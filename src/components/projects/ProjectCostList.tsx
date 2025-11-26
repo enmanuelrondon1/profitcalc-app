@@ -87,7 +87,7 @@ export function ProjectCostList({ costs, projectId }: ProjectCostListProps) {
         </div>
 
         <div className="p-4 space-y-2 bg-card">
-          {costs?.map((cost, index) => {
+          {costs?.map((cost) => {
             const totalItemCost = cost.quantity * cost.unit_price;
             return (
               <div

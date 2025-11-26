@@ -6,7 +6,6 @@ import { useState } from "react";
 import { getUserProjects, deleteUserProjects, changeUserRole } from "@/app/(routes)/admin/actions";
 import { AdminProjectsModal } from "./AdminProjectsModal";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Trash2, Eye, AlertCircle, Copy, Check, Crown, Shield, User } from "lucide-react";
 import {
   AlertDialog,
