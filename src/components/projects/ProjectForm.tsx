@@ -11,16 +11,21 @@ import { createProject } from "@/app/(routes)/projects/actions";
 import { useActionState, useEffect } from "react";
 import { toast } from "sonner";
 import { redirect } from "next/navigation";
+import { AlertCircle, Package } from "lucide-react";
 
 type Project = Database["public"]["Tables"]["projects"]["Row"];
 
 interface ProjectFormProps {
-  project?: Project; // Para poder reutilizar el form para editar
+  project?: Project;
 }
 
 const initialState = {
   message: undefined,
-  errors: {},
+  errors: {
+    name: undefined,
+    description: undefined,
+    quantity: undefined,
+  },
   success: false,
   data: undefined,
 };
@@ -29,7 +34,7 @@ function SubmitButton({ isEditing }: { isEditing: boolean }) {
   const { pending } = useFormStatus();
 
   return (
-    <Button type="submit" disabled={pending}>
+    <Button type="submit" disabled={pending} className="w-full gap-2">
       {pending
         ? "Guardando..."
         : isEditing
@@ -52,42 +57,86 @@ export function ProjectForm({ project }: ProjectFormProps) {
   }, [state]);
 
   return (
-    <form action={formAction} className="space-y-4">
+    <form action={formAction} className="space-y-6">
       {state?.message && !state.success && (
-        <div
-          className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative"
-          role="alert"
-        >
-          <span className="block sm:inline">{state.message}</span>
+        <div className="flex items-start gap-3 p-4 border rounded-lg bg-destructive/5 border-destructive/20">
+          <AlertCircle className="w-5 h-5 text-destructive flex-shrink-0 mt-0.5" />
+          <p className="text-sm text-destructive">{state.message}</p>
         </div>
       )}
-      <div>
-        <Label htmlFor="name">Project Name</Label>
+
+      {/* Nombre del Proyecto */}
+      <div className="space-y-2">
+        <Label htmlFor="name" className="text-sm font-semibold">
+          Nombre del Proyecto
+        </Label>
         <Input
           type="text"
           id="name"
           name="name"
-          className="mt-1"
+          placeholder="Ej: Venta de perros calientes"
+          className="h-11 bg-muted/50 border-border/50 focus:border-primary/50 focus:ring-primary/20"
           defaultValue={project?.name || ""}
           required
         />
         {state?.errors?.name && (
-          <p className="text-sm text-red-500 mt-1">{state.errors.name[0]}</p>
+          <p className="flex items-center gap-1 text-xs font-medium text-destructive">
+            <AlertCircle className="w-3 h-3" />
+            {state.errors.name[0]}
+          </p>
         )}
       </div>
 
-      <div>
-        <Label htmlFor="description">Description (Optional)</Label>
+      {/* Descripción */}
+      <div className="space-y-2">
+        <Label htmlFor="description" className="text-sm font-semibold">
+          Descripción (Opcional)
+        </Label>
         <Textarea
           id="description"
           name="description"
+          placeholder="Ej: Todos los lines de semana voy a vender perros calientes, días viernes, sábados y domingos."
           rows={3}
-          className="mt-1"
+          className="bg-muted/50 border-border/50 focus:border-primary/50 focus:ring-primary/20"
           defaultValue={project?.description || ""}
         />
+        {state?.errors?.description && (
+          <p className="flex items-center gap-1 text-xs font-medium text-destructive">
+            <AlertCircle className="w-3 h-3" />
+            {state.errors.description[0]}
+          </p>
+        )}
       </div>
 
-      <div className="flex justify-end">
+      {/* Cantidad de Unidades */}
+      <div className="space-y-2">
+        <Label htmlFor="quantity" className="flex items-center gap-2 text-sm font-semibold">
+          <Package className="w-4 h-4 text-muted-foreground" />
+          Cantidad de Unidades a Vender
+        </Label>
+        <p className="text-xs text-muted-foreground">
+          ¿Cuántas unidades piensas vender? (Ej: 40 perros calientes)
+        </p>
+        <Input
+          type="number"
+          id="quantity"
+          name="quantity"
+          placeholder="40"
+          min="1"
+          step="1"
+          className="h-11 bg-muted/50 border-border/50 focus:border-primary/50 focus:ring-primary/20"
+          defaultValue={project?.quantity || "1"}
+          required
+        />
+        {state?.errors?.quantity && (
+          <p className="flex items-center gap-1 text-xs font-medium text-destructive">
+            <AlertCircle className="w-3 h-3" />
+            {state.errors.quantity[0]}
+          </p>
+        )} 
+      </div>
+
+      <div className="flex justify-end pt-2">
         <SubmitButton isEditing={!!project} />
       </div>
     </form>

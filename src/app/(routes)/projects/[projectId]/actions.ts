@@ -1,4 +1,4 @@
-// src/app/(routes)/projects/[projectId]/actions.ts (VERSIÓN CORREGIDA Y FINAL)
+// src/app/(routes)/projects/[projectId]/actions.ts 
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
@@ -42,6 +42,53 @@ export type SellingPriceState = {
   message?: string;
 } & ActionResponse<unknown>;
 
+// --- Función auxiliar para calcular y actualizar totales ---
+
+async function updateProjectTotals(projectId: string): Promise<void> {
+  const supabase = await createClient();
+
+  try {
+    // 1. Obtener todos los costos del proyecto
+    const { data: costs, error: costsError } = await supabase
+      .from("project_costs")
+      .select("quantity, unit_price")
+      .eq("project_id", projectId);
+
+    if (costsError) throw costsError;
+
+    // 2. Calcular el costo total
+    const totalCost =
+      costs?.reduce((sum, cost) => sum + cost.quantity * cost.unit_price, 0) || 0;
+
+    // 3. Obtener el proyecto actual para acceder a selling_price y quantity
+    const { data: project, error: projectError } = await supabase
+      .from("projects")
+      .select("selling_price, quantity")
+      .eq("id", projectId)
+      .single();
+
+    if (projectError) throw projectError;
+
+    // 4. Calcular la ganancia
+    const sellingPrice = project?.selling_price || 0;
+    const profit = sellingPrice - totalCost;
+
+    // 5. Actualizar el proyecto con los nuevos valores
+    const { error: updateError } = await supabase
+      .from("projects")
+      .update({
+        total_cost: totalCost,
+        profit: profit,
+      })
+      .eq("id", projectId);
+
+    if (updateError) throw updateError;
+  } catch (error) {
+    console.error("Error updating project totals:", error);
+    throw error;
+  }
+}
+
 // --- Funciones de Acción (Server Actions) ---
 
 export async function createProjectCost(
@@ -81,8 +128,16 @@ export async function createProjectCost(
     return { success: false, message: `Error de base de datos: ${error.message}` };
   }
 
-  // ✅ AGREGADO: Revalida la página para refrescar los datos
+  // 🔄 Actualizar los totales del proyecto
+  try {
+    await updateProjectTotals(projectId);
+  } catch (error) {
+    console.error("Error al actualizar totales del proyecto:", error);
+  }
+
+  // ✅ Revalida la página para refrescar los datos
   revalidatePath(`/projects/${projectId}`);
+  revalidatePath("/projects");
 
   return {
     success: true,
@@ -118,8 +173,16 @@ export async function updateProjectSellingPrice(
     return { success: false, message: `Error de base de datos: ${error.message}` };
   }
 
-  // ✅ AGREGADO: Revalida la página para refrescar los datos
+  // 🔄 Actualizar los totales del proyecto
+  try {
+    await updateProjectTotals(projectId);
+  } catch (error) {
+    console.error("Error al actualizar totales del proyecto:", error);
+  }
+
+  // ✅ Revalida la página para refrescar los datos
   revalidatePath(`/projects/${projectId}`);
+  revalidatePath("/projects");
 
   return {
     success: true,
@@ -161,8 +224,16 @@ export async function updateProjectCost(
     return { success: false, message: `Error de base de datos: ${error.message}` };
   }
 
-  // ✅ AGREGADO: Revalida la página para refrescar los datos
+  // 🔄 Actualizar los totales del proyecto
+  try {
+    await updateProjectTotals(projectId);
+  } catch (error) {
+    console.error("Error al actualizar totales del proyecto:", error);
+  }
+
+  // ✅ Revalida la página para refrescar los datos
   revalidatePath(`/projects/${projectId}`);
+  revalidatePath("/projects");
 
   return {
     success: true,
@@ -182,8 +253,78 @@ export async function deleteProjectCost(
     return { success: false, message: `Error de base de datos: ${error.message}` };
   }
 
-  // ✅ AGREGADO: Revalida la página para refrescar los datos
+  // 🔄 Actualizar los totales del proyecto
+  try {
+    await updateProjectTotals(projectId);
+  } catch (error) {
+    console.error("Error al actualizar totales del proyecto:", error);
+  }
+
+  // ✅ Revalida la página para refrescar los datos
   revalidatePath(`/projects/${projectId}`);
+  revalidatePath("/projects");
 
   return { success: true, message: "Costo eliminado con éxito.", data: { costId } };
+}
+
+// --- NUEVA FUNCIÓN: Actualizar cantidad ---
+
+const updateQuantitySchema = z.object({
+  quantity: z.coerce
+    .number()
+    .min(1, "La cantidad debe ser al menos 1."),
+});
+
+export type UpdateQuantityState = {
+  errors?: {
+    quantity?: string[];
+  };
+  message?: string;
+  success?: boolean;
+};
+
+export async function updateProjectQuantity(
+  projectId: string,
+  prevState: UpdateQuantityState,
+  formData: FormData
+): Promise<UpdateQuantityState> {
+  const validatedFields = updateQuantitySchema.safeParse({
+    quantity: formData.get("quantity"),
+  });
+
+  if (!validatedFields.success) {
+    return {
+      message: "Error de validación.",
+      errors: validatedFields.error.flatten().fieldErrors,
+      success: false,
+    };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("projects")
+    .update({ quantity: validatedFields.data.quantity })
+    .eq("id", projectId);
+
+  if (error) {
+    return {
+      message: `Error de base de datos: ${error.message}`,
+      success: false,
+    };
+  }
+
+  // 🔄 Actualizar los totales del proyecto
+  try {
+    await updateProjectTotals(projectId);
+  } catch (error) {
+    console.error("Error al actualizar totales del proyecto:", error);
+  }
+
+  revalidatePath(`/projects/${projectId}`);
+  revalidatePath("/projects");
+
+  return {
+    success: true,
+    message: "Cantidad actualizada con éxito.",
+  };
 }

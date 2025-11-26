@@ -20,6 +20,8 @@ export interface Project {
   sale_price: number | null;
   selling_price: number | null;
   total_cost: number | null;
+  is_favorite: boolean | null;
+  quantity: number | null; // ✅ NUEVO: Cantidad de unidades
 }
 
 export interface Cost {
@@ -38,7 +40,7 @@ export interface ReusableCost {
   id: string;
   name: string;
   unit_price: number;
-  category?: string;  // ✅ Opcional
+  category?: string;
 }
 
 // --- TIPOS ESPECÍFICOS PARA VISTAS O LÓGICA COMPLEJA ---
@@ -58,4 +60,17 @@ export interface ChartData {
   name: string;
   value: number;
   fill: string;
+}
+
+// ✅ NUEVO: Tipo para cálculos de rentabilidad por unidad
+export interface ProfitCalculation {
+  totalCost: number;
+  quantity: number;
+  costPerUnit: number;
+  sellingPrice: number | null;
+  pricePerUnit: number | null;
+  totalProfit: number | null;
+  profitPerUnit: number | null;
+  profitMargin: number | null;
+  isProfitable: boolean;
 }

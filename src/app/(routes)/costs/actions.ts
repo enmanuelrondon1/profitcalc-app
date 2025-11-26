@@ -4,7 +4,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { toast } from "sonner";
 
 // Esquema de validación para un costo reutilizable
 const reusableCostSchema = z.object({
@@ -14,6 +13,7 @@ const reusableCostSchema = z.object({
 });
 
 export type ReusableCostState = {
+  success?: boolean;
   errors?: {
     name?: string[];
     unit_price?: string[];
@@ -22,7 +22,10 @@ export type ReusableCostState = {
   message?: string;
 };
 
-export async function createReusableCost(prevState: ReusableCostState, formData: FormData): Promise<ReusableCostState> {
+export async function createReusableCost(
+  prevState: ReusableCostState,
+  formData: FormData
+): Promise<ReusableCostState> {
   const validatedFields = reusableCostSchema.safeParse({
     name: formData.get("name"),
     unit_price: formData.get("unit_price"),
@@ -31,6 +34,8 @@ export async function createReusableCost(prevState: ReusableCostState, formData:
 
   if (!validatedFields.success) {
     return {
+      success: false,
+      message: "Error de validación.",
       errors: validatedFields.error.flatten().fieldErrors,
     };
   }
@@ -41,8 +46,10 @@ export async function createReusableCost(prevState: ReusableCostState, formData:
   } = await supabase.auth.getUser();
 
   if (!user) {
-    toast.error("Debes iniciar sesión para crear un costo.");
-    return { message: "No autorizado." };
+    return {
+      success: false,
+      message: "Debes iniciar sesión para crear un costo.",
+    };
   }
 
   const { error } = await supabase.from("reusable_costs").insert({
@@ -51,24 +58,37 @@ export async function createReusableCost(prevState: ReusableCostState, formData:
   });
 
   if (error) {
-    toast.error(`Error al crear el costo: ${error.message}`);
-    return { message: "Error en la base de datos." };
+    return {
+      success: false,
+      message: `Error al crear el costo: ${error.message}`,
+    };
   }
 
   revalidatePath("/costs");
-  toast.success("Costo reutilizable creado con éxito.");
-  return { message: "Costo creado." };
+
+  return {
+    success: true,
+    message: "Costo reutilizable creado con éxito.",
+  };
 }
 
-export async function deleteReusableCost(costId: string) {
+export async function deleteReusableCost(
+  costId: string
+): Promise<ReusableCostState> {
   const supabase = await createClient();
   const { error } = await supabase.from("reusable_costs").delete().eq("id", costId);
 
   if (error) {
-    toast.error(`Error al eliminar el costo: ${error.message}`);
-    return;
+    return {
+      success: false,
+      message: `Error al eliminar el costo: ${error.message}`,
+    };
   }
 
   revalidatePath("/costs");
-  toast.success("Costo eliminado con éxito.");
+
+  return {
+    success: true,
+    message: "Costo eliminado con éxito.",
+  };
 }

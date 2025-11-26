@@ -15,6 +15,8 @@ export const mapDbProjectToProject = (dbProject: DbProject): Project => {
     sale_price: dbProject.sale_price,
     selling_price: dbProject.selling_price,
     total_cost: dbProject.total_cost,
+    is_favorite: dbProject.is_favorite,
+    quantity: dbProject.quantity,
   };
 };
 
