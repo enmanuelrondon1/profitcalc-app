@@ -1,7 +1,6 @@
 //src/app/api/callback/route.ts
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
-
 import type { NextRequest } from "next/server";
 
 export async function GET(request: NextRequest) {
@@ -13,6 +12,6 @@ export async function GET(request: NextRequest) {
     await supabase.auth.exchangeCodeForSession(code);
   }
 
-  // URL a la que redirigir después de que se complete el proceso de inicio de sesión
+  // Redirigir a /projects después de completar el login
   return NextResponse.redirect(new URL('/projects', requestUrl.origin));
 }
