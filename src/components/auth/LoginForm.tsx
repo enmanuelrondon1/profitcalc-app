@@ -10,7 +10,16 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import Link from "next/link";
 import { LogoFull } from "@/components/layout/LogoSystem";
-import { Mail, Lock, AlertCircle, ArrowRight, Loader2, Eye, EyeOff, Shield } from "lucide-react";
+import {
+  Mail,
+  Lock,
+  AlertCircle,
+  ArrowRight,
+  Loader2,
+  Eye,
+  EyeOff,
+  Shield,
+} from "lucide-react";
 
 export function LoginForm() {
   const router = useRouter();
@@ -41,8 +50,6 @@ export function LoginForm() {
     }
   };
 
-  
-
   const handleGoogleSignIn = async () => {
     setLoading(true);
     setError(null);
@@ -50,20 +57,20 @@ export function LoginForm() {
     try {
       // Eliminamos 'data' ya que no se usa
       const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
+        provider: "google",
         options: {
-         redirectTo: `${window.location.origin}/api/callback`,
+          redirectTo: `${window.location.origin}/api/callback`,
         },
       });
-  
+
       if (error) {
         setError(error.message);
         setLoading(false);
       }
     } catch (error) {
       // Agregamos el error al mensaje para debugging
-      console.error('Error Google sign-in:', error);
-      setError('Error al iniciar sesión con Google');
+      console.error("Error Google sign-in:", error);
+      setError("Error al iniciar sesión con Google");
       setLoading(false);
     }
   };
@@ -74,10 +81,12 @@ export function LoginForm() {
       <div className="justify-center hidden mb-8 lg:flex">
         <LogoFull size="lg" />
       </div>
-      
+
       {/* Header */}
       <div className="space-y-2 text-center">
-        <h1 className="text-2xl font-bold tracking-tight">Bienvenido de nuevo</h1>
+        <h1 className="text-2xl font-bold tracking-tight">
+          Bienvenido de nuevo
+        </h1>
         <p className="text-sm text-muted-foreground">
           Ingresa tus credenciales para acceder a tu cuenta
         </p>
@@ -186,7 +195,11 @@ export function LoginForm() {
               onClick={() => setShowPassword(!showPassword)}
               className="absolute transition-colors -translate-y-1/2 right-3 top-1/2 text-muted-foreground hover:text-foreground"
             >
-              {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              {showPassword ? (
+                <EyeOff className="w-4 h-4" />
+              ) : (
+                <Eye className="w-4 h-4" />
+              )}
             </button>
           </div>
         </div>
@@ -215,7 +228,10 @@ export function LoginForm() {
       <div className="text-center">
         <p className="text-sm text-muted-foreground">
           ¿No tienes cuenta?{" "}
-          <Link href="/signup" className="font-medium text-primary hover:underline">
+          <Link
+            href="/signup"
+            className="font-medium text-primary hover:underline"
+          >
             Crear una cuenta
           </Link>
         </p>
